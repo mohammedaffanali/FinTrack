@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 export type SessionUser = {
@@ -19,7 +19,10 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const isGmail = (email: string) => email.trim().toLowerCase().endsWith('@gmail.com');
+const isGmail = (email: string) => {
+  const e = email.trim().toLowerCase();
+  return e.endsWith('@gmail.com') || e.endsWith('@googlemail.com');
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -33,62 +36,91 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let isSubscribed = true;
 
-    const initAuth = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!isSubscribed) return;
-
-        if (data.session?.user) {
-          const u = data.session.user;
-          if (u.email && !isGmail(u.email)) {
-            await supabase.auth.signOut();
-            if (isSubscribed) setUser(null);
-          } else {
-            if (isSubscribed) setUser(toSessionUser(u));
-          }
-        }
-      } catch (err) {
-        console.error('Error getting auth session:', err);
-      } finally {
-        const hasOAuthParams =
-          window.location.hash.includes('access_token=') ||
-          window.location.search.includes('code=');
-
-        if (isSubscribed && !hasOAuthParams) {
-          setLoading(false);
-        }
-      }
+    const isOAuthCallback = () => {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      return (
+        hash.includes('access_token=') ||
+        hash.includes('error=') ||
+        search.includes('code=') ||
+        search.includes('error=')
+      );
     };
 
-    initAuth();
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const processSession = async (session: Session | null) => {
       if (!isSubscribed) return;
 
       if (session?.user) {
         const u = session.user;
-        if (u.email && !isGmail(u.email)) {
-          await supabase.auth.signOut();
-          if (isSubscribed) setUser(null);
-        } else {
-          if (isSubscribed) setUser(toSessionUser(u));
+        const userEmail = (
+          u.email ||
+          (u.user_metadata?.email as string | undefined) ||
+          (u.identities?.[0]?.identity_data?.email as string | undefined) ||
+          ''
+        ).trim().toLowerCase();
 
-          if (window.location.hash.includes('access_token=') || window.location.search.includes('code=')) {
+        if (userEmail && !isGmail(userEmail)) {
+          console.warn('Rejected non-Gmail authentication attempt:', userEmail);
+          await supabase.auth.signOut();
+          if (isSubscribed) {
+            setUser(null);
+            setLoading(false);
+          }
+        } else {
+          if (isSubscribed) {
+            setUser(toSessionUser(u));
+            setLoading(false);
+          }
+
+          if (isOAuthCallback()) {
             window.history.replaceState(null, '', window.location.pathname);
           }
         }
       } else {
-        if (isSubscribed) setUser(null);
+        if (isSubscribed) {
+          setUser(null);
+          if (!isOAuthCallback()) {
+            setLoading(false);
+          }
+        }
       }
+    };
 
-      if (isSubscribed) {
-        setLoading(false);
+    // 1. Initial Session Lookup
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        processSession(session);
+      } else if (!isOAuthCallback()) {
+        if (isSubscribed) setLoading(false);
+      }
+    }).catch((err) => {
+      console.error('Error fetching initial auth session:', err);
+      if (isSubscribed && !isOAuthCallback()) setLoading(false);
+    });
+
+    // 2. Auth State Change Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isSubscribed) return;
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        await processSession(session);
+      } else if (event === 'SIGNED_OUT') {
+        if (isSubscribed) {
+          setUser(null);
+          setLoading(false);
+        }
+      } else if (event === 'INITIAL_SESSION') {
+        if (session) {
+          await processSession(session);
+        } else if (!isOAuthCallback()) {
+          if (isSubscribed) setLoading(false);
+        }
       }
     });
 
     return () => {
       isSubscribed = false;
-      sub.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -165,5 +197,6 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+
 
 
