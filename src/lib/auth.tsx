@@ -36,91 +36,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let isSubscribed = true;
 
-    const isOAuthCallback = () => {
-      const hash = window.location.hash;
-      const search = window.location.search;
-      return (
-        hash.includes('access_token=') ||
-        hash.includes('error=') ||
-        search.includes('code=') ||
-        search.includes('error=')
-      );
-    };
-
-    const processSession = async (session: Session | null) => {
+    const handleSession = (session: Session | null) => {
       if (!isSubscribed) return;
 
       if (session?.user) {
-        const u = session.user;
-        const userEmail = (
-          u.email ||
-          (u.user_metadata?.email as string | undefined) ||
-          (u.identities?.[0]?.identity_data?.email as string | undefined) ||
-          ''
-        ).trim().toLowerCase();
+        setUser(toSessionUser(session.user));
+        setLoading(false);
 
-        if (userEmail && !isGmail(userEmail)) {
-          console.warn('Rejected non-Gmail authentication attempt:', userEmail);
-          await supabase.auth.signOut();
-          if (isSubscribed) {
-            setUser(null);
-            setLoading(false);
-          }
-        } else {
-          if (isSubscribed) {
-            setUser(toSessionUser(u));
-            setLoading(false);
-          }
-
-          if (isOAuthCallback()) {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
+        if (
+          window.location.hash.includes('access_token=') ||
+          window.location.search.includes('code=')
+        ) {
+          window.history.replaceState(null, '', window.location.pathname);
         }
       } else {
-        if (isSubscribed) {
-          setUser(null);
-          if (!isOAuthCallback()) {
-            setLoading(false);
-          }
+        setUser(null);
+        const hasOAuthParams =
+          window.location.hash.includes('access_token=') ||
+          window.location.search.includes('code=');
+        if (!hasOAuthParams) {
+          setLoading(false);
         }
       }
     };
 
-    // 1. Initial Session Lookup
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        processSession(session);
-      } else if (!isOAuthCallback()) {
+    // 1. Initial Session Check
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (session) {
+          handleSession(session);
+        } else {
+          const hasOAuthParams =
+            window.location.hash.includes('access_token=') ||
+            window.location.search.includes('code=');
+          if (!hasOAuthParams && isSubscribed) {
+            setLoading(false);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Error getting session:', err);
         if (isSubscribed) setLoading(false);
-      }
-    }).catch((err) => {
-      console.error('Error fetching initial auth session:', err);
-      if (isSubscribed && !isOAuthCallback()) setLoading(false);
-    });
+      });
 
     // 2. Auth State Change Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!isSubscribed) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleSession(session);
+    });
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        await processSession(session);
-      } else if (event === 'SIGNED_OUT') {
+    // 3. Fallback Safety Timeout for OAuth Callbacks
+    const hasOAuthParams =
+      window.location.hash.includes('access_token=') ||
+      window.location.search.includes('code=');
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+    if (hasOAuthParams) {
+      fallbackTimer = setTimeout(() => {
         if (isSubscribed) {
-          setUser(null);
           setLoading(false);
         }
-      } else if (event === 'INITIAL_SESSION') {
-        if (session) {
-          await processSession(session);
-        } else if (!isOAuthCallback()) {
-          if (isSubscribed) setLoading(false);
-        }
-      }
-    });
+      }, 4000);
+    }
 
     return () => {
       isSubscribed = false;
       subscription.unsubscribe();
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, []);
 
@@ -189,7 +172,12 @@ function toSessionUser(u: User, nameOverride?: string): SessionUser {
     (u.user_metadata?.full_name as string | undefined) ??
     (u.user_metadata?.name as string | undefined) ??
     (u.email ? u.email.split('@')[0] : 'User');
-  return { id: u.id, name, email: u.email ?? '' };
+  const email =
+    u.email ??
+    (u.user_metadata?.email as string | undefined) ??
+    (u.identities?.[0]?.identity_data?.email as string | undefined) ??
+    '';
+  return { id: u.id, name, email };
 }
 
 export function useAuth(): AuthContextValue {
@@ -197,6 +185,7 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+
 
 
 
