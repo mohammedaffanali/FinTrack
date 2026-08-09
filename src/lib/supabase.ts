@@ -17,8 +17,10 @@ export const supabase = createClient(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      // detectSessionInUrl is intentionally false — we handle the URL ourselves
+      // in auth.tsx's bootstrap() to avoid race conditions
+      detectSessionInUrl: false,
+      flowType: 'pkce',
     },
   },
 );
-

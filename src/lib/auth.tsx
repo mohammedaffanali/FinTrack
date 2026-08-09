@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { User, Session } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 export type SessionUser = {
@@ -19,11 +19,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const isGmail = (email: string) => {
-  const e = email.trim().toLowerCase();
-  return e.endsWith('@gmail.com') || e.endsWith('@googlemail.com');
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,83 +29,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    let isSubscribed = true;
+    let mounted = true;
 
-    const handleSession = (session: Session | null) => {
-      if (!isSubscribed) return;
+    async function bootstrap() {
+      try {
+        // --- Step 1: Handle PKCE code exchange if ?code= is present ---
+        const searchParams = new URLSearchParams(window.location.search);
+        const code = searchParams.get('code');
 
-      if (session?.user) {
-        setUser(toSessionUser(session.user));
-        setLoading(false);
+        if (code) {
+          // Strip the code from URL immediately so it's not double-processed
+          window.history.replaceState({}, '', window.location.pathname);
 
-        if (
-          window.location.hash.includes('access_token=') ||
-          window.location.search.includes('code=')
-        ) {
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-      } else {
-        setUser(null);
-        const hasOAuthParams =
-          window.location.hash.includes('access_token=') ||
-          window.location.search.includes('code=');
-        if (!hasOAuthParams) {
-          setLoading(false);
-        }
-      }
-    };
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!mounted) return;
 
-    // 1. Initial Session Check
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        if (session) {
-          handleSession(session);
-        } else {
-          const hasOAuthParams =
-            window.location.hash.includes('access_token=') ||
-            window.location.search.includes('code=');
-          if (!hasOAuthParams && isSubscribed) {
+          if (error) {
+            console.error('[Auth] PKCE code exchange failed:', error.message);
+            // Fall through to getSession to check for existing session
+          } else if (data.session?.user) {
+            setUser(toSessionUser(data.session.user));
             setLoading(false);
+            return; // Done — session established via PKCE
           }
         }
-      })
-      .catch((err) => {
-        console.error('Error getting session:', err);
-        if (isSubscribed) setLoading(false);
-      });
 
-    // 2. Auth State Change Listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      handleSession(session);
-    });
-
-    // 3. Fallback Safety Timeout for OAuth Callbacks
-    const hasOAuthParams =
-      window.location.hash.includes('access_token=') ||
-      window.location.search.includes('code=');
-    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
-    if (hasOAuthParams) {
-      fallbackTimer = setTimeout(() => {
-        if (isSubscribed) {
-          setLoading(false);
+        // --- Step 2: Handle implicit flow (#access_token=) ---
+        const hash = window.location.hash;
+        if (hash.includes('access_token=')) {
+          // detectSessionInUrl handles this automatically; getSession will have it
+          // Just wait a tick for the client to parse the hash
+          await new Promise((r) => setTimeout(r, 100));
+          window.history.replaceState({}, '', window.location.pathname);
         }
-      }, 4000);
+
+        // --- Step 3: Check for an existing persisted session ---
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+
+        if (session?.user) {
+          setUser(toSessionUser(session.user));
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('[Auth] Bootstrap error:', err);
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
+      }
     }
 
+    bootstrap();
+
+    // --- Step 4: Listen for auth changes (token refresh, sign-out, etc.) ---
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        setUser(toSessionUser(session.user));
+      } else {
+        setUser(null);
+      }
+      // Never set loading here — bootstrap() owns the initial loading state
+    });
+
     return () => {
-      isSubscribed = false;
+      mounted = false;
       subscription.unsubscribe();
-      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, []);
 
   const signUp = async (name: string, email: string, password: string) => {
-    if (!isGmail(email)) {
-      return { error: 'Only Gmail accounts (@gmail.com) are allowed.' };
-    }
     if (!isSupabaseConfigured) return { error: 'Backend is not configured properly.' };
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -118,34 +107,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: { data: { name } },
     });
     if (error) return { error: error.message };
-    if (data.user) {
-      setUser(toSessionUser(data.user, name));
-    }
+    if (data.user) setUser(toSessionUser(data.user, name));
     return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {
-    if (!isGmail(email)) {
-      return { error: 'Only Gmail accounts (@gmail.com) are allowed.' };
-    }
     if (!isSupabaseConfigured) return { error: 'Backend is not configured properly.' };
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
-    if (data.user) {
-      setUser(toSessionUser(data.user));
-    }
+    if (data.user) setUser(toSessionUser(data.user));
     return { error: null };
   };
 
   const signInWithGoogle = async () => {
-    if (!isSupabaseConfigured) {
-      return { error: 'Backend is not configured properly.' };
-    }
-    const redirectTo = window.location.origin;
+    if (!isSupabaseConfigured) return { error: 'Backend is not configured properly.' };
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo,
+        redirectTo: window.location.origin,
       },
     });
     if (error) return { error: error.message };
@@ -154,9 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     setUser(null);
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
-    }
+    if (isSupabaseConfigured) await supabase.auth.signOut();
   };
 
   return (
@@ -175,7 +152,6 @@ function toSessionUser(u: User, nameOverride?: string): SessionUser {
   const email =
     u.email ??
     (u.user_metadata?.email as string | undefined) ??
-    (u.identities?.[0]?.identity_data?.email as string | undefined) ??
     '';
   return { id: u.id, name, email };
 }
@@ -185,7 +161,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
-
-
-
-
