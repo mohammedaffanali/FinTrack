@@ -403,29 +403,33 @@ function SummaryCard({
   const style = tones[tone];
 
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-charcoal-500">{label}</span>
-        <span className={`w-8 h-8 rounded-xl flex items-center justify-center border ${style.bg} ${style.text} ${style.border}`}>
-          <Icon name={icon} className="w-4 h-4" />
+    <Card className="p-4 sm:p-5 overflow-hidden min-w-0">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-charcoal-500 truncate min-w-0 mr-1">
+          {label}
+        </span>
+        <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center border shrink-0 ${style.bg} ${style.text} ${style.border}`}>
+          <Icon name={icon} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </span>
       </div>
-      <p className="font-display text-2xl font-bold text-charcoal-900 tracking-tight">{value}</p>
+      <p className="font-display text-base sm:text-xl lg:text-2xl font-bold text-charcoal-900 tracking-tight tabular-nums truncate min-w-0" title={value}>
+        {value}
+      </p>
       {change !== undefined && change !== null && (
-        <div className="flex items-center gap-1 mt-2">
+        <div className="flex items-center gap-1 mt-1.5 sm:mt-2 truncate">
           {changeInvert ? (
             change < 0 ? (
-              <TrendingDown className="w-3.5 h-3.5 text-forest-600" />
+              <TrendingDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-forest-600 shrink-0" />
             ) : (
-              <TrendingUp className="w-3.5 h-3.5 text-apricot-600" />
+              <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-apricot-600 shrink-0" />
             )
           ) : change >= 0 ? (
-            <TrendingUp className="w-3.5 h-3.5 text-forest-600" />
+            <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-forest-600 shrink-0" />
           ) : (
-            <TrendingDown className="w-3.5 h-3.5 text-apricot-600" />
+            <TrendingDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-apricot-600 shrink-0" />
           )}
           <span
-            className={`text-xs font-bold ${
+            className={`text-[10px] sm:text-xs font-bold truncate ${
               changeInvert
                 ? change < 0
                   ? 'text-forest-700'
@@ -435,7 +439,7 @@ function SummaryCard({
                 : 'text-apricot-600'
             }`}
           >
-            {change >= 0 ? '↑' : '↓'} {Math.abs(change).toFixed(1)}% vs prev month
+            {change >= 0 ? '↑' : '↓'} {Math.abs(change).toFixed(1)}% <span className="hidden sm:inline">vs prev month</span>
           </span>
         </div>
       )}

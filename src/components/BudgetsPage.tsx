@@ -132,17 +132,17 @@ export function BudgetsPage({ initialMonth }: BudgetsPageProps) {
       {monthBudgets.length > 0 && (
         <Card className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-charcoal-500">
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-charcoal-500 block truncate">
                 Total Budget for {monthLabel(month)}
               </span>
-              <p className="font-display text-2xl font-bold text-charcoal-900 mt-0.5">
-                {formatINR(totalSpent)} <span className="text-sm text-charcoal-500 font-normal">of {formatINR(totalBudget)}</span>
+              <p className="font-display text-base sm:text-2xl font-bold text-charcoal-900 mt-0.5 tabular-nums truncate min-w-0">
+                {formatINR(totalSpent)} <span className="text-xs sm:text-sm text-charcoal-500 font-normal">of {formatINR(totalBudget)}</span>
               </p>
             </div>
-            <div className="text-left sm:text-right">
-              <span className="text-xs font-semibold text-charcoal-500">Remaining</span>
-              <p className={`font-display text-xl font-bold ${totalBudget - totalSpent < 0 ? 'text-apricot-600' : 'text-forest-700'}`}>
+            <div className="text-left sm:text-right shrink-0 min-w-0">
+              <span className="text-[10px] sm:text-xs font-semibold text-charcoal-500 block">Remaining</span>
+              <p className={`font-display text-sm sm:text-xl font-bold tabular-nums truncate min-w-0 ${totalBudget - totalSpent < 0 ? 'text-apricot-600' : 'text-forest-700'}`}>
                 {formatINR(totalBudget - totalSpent)}
               </p>
             </div>

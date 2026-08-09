@@ -160,28 +160,28 @@ export function MoneyPath({
         </svg>
 
         {/* Floating node metadata cards */}
-        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-charcoal-100/80">
-          <div className="flex flex-col">
-            <span className="text-[11px] font-semibold tracking-wider text-charcoal-400 uppercase">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4 pt-4 border-t border-charcoal-100/80">
+          <div className="flex flex-col min-w-0">
+            <span className="text-[9px] sm:text-[11px] font-semibold tracking-wider text-charcoal-400 uppercase truncate">
               Income Path
             </span>
-            <span className="font-display text-lg font-bold text-forest-800">
+            <span className="font-display text-xs sm:text-base lg:text-lg font-bold text-forest-800 tabular-nums truncate min-w-0" title={incomeValue}>
               {incomeValue || '$5,400.00'}
             </span>
           </div>
-          <div className="flex flex-col items-center text-center">
-            <span className="text-[11px] font-semibold tracking-wider text-charcoal-400 uppercase">
-              Intentional Spending
+          <div className="flex flex-col items-center text-center min-w-0">
+            <span className="text-[9px] sm:text-[11px] font-semibold tracking-wider text-charcoal-400 uppercase truncate">
+              Spending Flow
             </span>
-            <span className="font-display text-lg font-bold text-apricot-600">
+            <span className="font-display text-xs sm:text-base lg:text-lg font-bold text-apricot-600 tabular-nums truncate min-w-0" title={spendingValue}>
               {spendingValue || '$2,840.50'}
             </span>
           </div>
-          <div className="flex flex-col items-end text-right">
-            <span className="text-[11px] font-semibold tracking-wider text-charcoal-400 uppercase">
+          <div className="flex flex-col items-end text-right min-w-0">
+            <span className="text-[9px] sm:text-[11px] font-semibold tracking-wider text-charcoal-400 uppercase truncate">
               Saved & Invested
             </span>
-            <span className="font-display text-lg font-bold text-forest-700">
+            <span className="font-display text-xs sm:text-base lg:text-lg font-bold text-forest-700 tabular-nums truncate min-w-0" title={savingsValue}>
               {savingsValue || '$2,559.50'}
             </span>
           </div>

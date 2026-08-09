@@ -17,6 +17,7 @@ interface DataContextValue {
   deleteBudget: (id: string) => Promise<{ error: string | null }>;
   upsertSubscription: (s: Omit<Subscription, 'id'> & { id?: string }) => Promise<{ error: string | null }>;
   deleteSubscription: (id: string) => Promise<{ error: string | null }>;
+  resetAllData: () => Promise<{ error: string | null }>;
   refresh: () => Promise<void>;
 }
 
@@ -200,6 +201,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [load],
   );
 
+  const resetAllData = useCallback(async () => {
+    if (!user || !isSupabaseConfigured) {
+      setTransactions([]);
+      setBudgets([]);
+      setSubscriptions([]);
+      return { error: null };
+    }
+    try {
+      setLoading(true);
+      const [tErr, bErr, sErr] = await Promise.all([
+        supabase.from('transactions').delete().eq('user_id', user.id),
+        supabase.from('budgets').delete().eq('user_id', user.id),
+        supabase.from('subscriptions').delete().eq('user_id', user.id),
+      ]);
+      if (tErr.error) return { error: tErr.error.message };
+      if (bErr.error) return { error: bErr.error.message };
+      if (sErr.error) return { error: sErr.error.message };
+      await load();
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'Failed to reset data' };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, load]);
+
   return (
     <DataContext.Provider
       value={{
@@ -216,6 +243,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deleteBudget,
         upsertSubscription,
         deleteSubscription,
+        resetAllData,
         refresh: load,
       }}
     >

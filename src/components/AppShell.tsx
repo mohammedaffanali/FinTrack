@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
+import { useData } from '@/lib/data';
 import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { Icon } from './ui/Icon';
@@ -10,6 +11,8 @@ import {
   Plus,
   Menu,
   ChevronDown,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 
 export type Page = 'dashboard' | 'transactions' | 'budgets' | 'subscriptions' | 'insights' | 'comparison';
@@ -34,12 +37,22 @@ const MOBILE_NAV = NAV.slice(0, 5);
 
 export function AppShell({ page, onNavigate, onAddTransaction, children }: AppShellProps) {
   const { user, signOut } = useAuth();
+  const { resetAllData } = useData();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const initials = user?.name
     ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
     : 'U';
+
+  const handleResetData = async () => {
+    setResetting(true);
+    await resetAllData();
+    setResetting(false);
+    setResetModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-ivory-50 text-charcoal-900 flex relative overflow-hidden">
@@ -149,6 +162,17 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
             <button
               onClick={() => {
                 setMobileNavOpen(false);
+                setResetModalOpen(true);
+              }}
+              className="w-full flex items-center gap-3 px-3.5 h-11 rounded-xl text-sm font-medium text-charcoal-700 hover:bg-cream-200 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4 text-forest-700" />
+              Reset All Data
+            </button>
+
+            <button
+              onClick={() => {
+                setMobileNavOpen(false);
                 signOut();
               }}
               className="w-full flex items-center gap-3 px-3.5 h-11 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
@@ -194,11 +218,21 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
                   <button
                     onClick={() => {
                       setProfileOpen(false);
-                      signOut();
+                      setResetModalOpen(true);
                     }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-charcoal-700 hover:bg-cream-200/80 transition-colors"
                   >
-                    <LogOut className="w-4 h-4 text-apricot-600" />
+                    <RotateCcw className="w-4 h-4 text-forest-700" />
+                    Reset All Data
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      signOut();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors border-t border-charcoal-100/70"
+                  >
+                    <LogOut className="w-4 h-4" />
                     Log out
                   </button>
                 </div>
@@ -240,6 +274,29 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
       >
         <Plus className="w-6 h-6" />
       </button>
+
+      {/* Reset Data Confirmation Modal */}
+      <Modal open={resetModalOpen} onClose={() => setResetModalOpen(false)} title="Reset All Financial Data?" size="sm">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-3.5 bg-apricot-50 border border-apricot-200 rounded-2xl text-apricot-900 text-xs font-semibold leading-relaxed">
+            <AlertTriangle className="w-6 h-6 text-apricot-600 shrink-0" />
+            <span>
+              This will permanently delete all your logged transactions, custom budgets, and subscriptions. This action cannot be undone.
+            </span>
+          </div>
+          <p className="text-sm text-charcoal-600">
+            Are you sure you want to reset your account data back to a clean state?
+          </p>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setResetModalOpen(false)} disabled={resetting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleResetData} disabled={resetting} leftIcon={<RotateCcw className="w-4 h-4" />}>
+              {resetting ? 'Resetting...' : 'Reset All Data'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
+import { Modal } from './ui/Modal';
 import { TextInput, Select } from './ui/Field';
 import { MoneyPath } from './ui/MoneyPath';
 import { useData } from '@/lib/data';
@@ -18,6 +19,8 @@ import {
   ArrowUpRight,
   X,
   SlidersHorizontal,
+  RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface TransactionsPageProps {
@@ -93,17 +96,37 @@ export function TransactionsPage({ onAdd, onEdit, onImportCSV, filterCategory, c
     setConfirmDelete(null);
   };
 
+  const { resetAllData } = useData();
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  const handleReset = async () => {
+    setResetting(true);
+    await resetAllData();
+    setResetting(false);
+    setResetModalOpen(false);
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-forest-700">Financial Ledger</span>
           <h1 className="font-display text-3xl font-bold tracking-tight text-charcoal-900 mt-0.5">Transactions</h1>
-          <p className="text-sm text-charcoal-600 mt-1">
-            {filtered.length} transaction{filtered.length !== 1 ? 's' : ''} · <span className="text-apricot-600 font-semibold">{formatINR(totalExpense)} spent</span> · <span className="text-forest-700 font-semibold">{formatINR(totalIncome)} earned</span>
+          <p className="text-xs sm:text-sm text-charcoal-600 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>{filtered.length} transaction{filtered.length !== 1 ? 's' : ''}</span>
+            <span>·</span>
+            <span className="text-apricot-600 font-semibold tabular-nums">{formatINR(totalExpense)} spent</span>
+            <span>·</span>
+            <span className="text-forest-700 font-semibold tabular-nums">{formatINR(totalIncome)} earned</span>
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {transactions.length > 0 && (
+            <Button variant="ghost" onClick={() => setResetModalOpen(true)} leftIcon={<RotateCcw className="w-4 h-4 text-forest-700" />}>
+              <span className="hidden sm:inline">Reset Data</span>
+            </Button>
+          )}
           <Button variant="outline" onClick={onImportCSV} leftIcon={<Upload className="w-4 h-4" />}>
             Import CSV
           </Button>
@@ -316,6 +339,29 @@ export function TransactionsPage({ onAdd, onEdit, onImportCSV, filterCategory, c
           </Card>
         </div>
       )}
+
+      {/* Reset Data Modal */}
+      <Modal open={resetModalOpen} onClose={() => setResetModalOpen(false)} title="Reset All Financial Data?" size="sm">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-3.5 bg-apricot-50 border border-apricot-200 rounded-2xl text-apricot-900 text-xs font-semibold leading-relaxed">
+            <AlertTriangle className="w-6 h-6 text-apricot-600 shrink-0" />
+            <span>
+              This will permanently delete all your logged transactions, custom budgets, and subscriptions. This action cannot be undone.
+            </span>
+          </div>
+          <p className="text-sm text-charcoal-600">
+            Are you sure you want to reset your account data back to a clean state?
+          </p>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setResetModalOpen(false)} disabled={resetting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleReset} disabled={resetting} leftIcon={<RotateCcw className="w-4 h-4" />}>
+              {resetting ? 'Resetting...' : 'Reset All Data'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
