@@ -171,7 +171,7 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-charcoal-700 hover:bg-cream-200/80 transition-colors"
                   >
                     <LogOut className="w-4 h-4 text-apricot-600" />
-                    {isDemo ? 'Exit Demo' : 'Log out'}
+                    Log out
                   </button>
                 </div>
               </>

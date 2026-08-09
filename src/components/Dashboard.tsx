@@ -69,6 +69,102 @@ export function Dashboard({ onAddTransaction, onCategoryClick, onSeeAllTransacti
   const incChange = pctChange(summary.income, prevSummary.income);
   const remChange = pctChange(summary.remaining, prevSummary.remaining);
 
+  if (transactions.length === 0) {
+    return (
+      <div className="space-y-8 py-4">
+        {/* Onboarding Welcome Hero */}
+        <Card className="p-8 sm:p-12 bg-gradient-to-br from-cream-100/90 via-ivory-50 to-cream-200/50 border-charcoal-100 shadow-xl relative overflow-hidden">
+          <div className="max-w-2xl space-y-6 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-forest-50 border border-forest-200 text-forest-800 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-apricot-500" />
+              <span>Getting Started</span>
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-charcoal-900">
+                Welcome to FinTrack 👋
+              </h1>
+              <p className="font-display text-xl text-forest-700 font-semibold italic">
+                Let's get your finances organized.
+              </p>
+            </div>
+
+            <p className="text-charcoal-600 text-base leading-relaxed">
+              Add a few transactions and FinTrack will start showing you where your money goes across Income → Spending → Savings.
+            </p>
+
+            {/* Primary onboarding action buttons */}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button
+                size="lg"
+                onClick={onAddTransaction}
+                className="bg-forest-700 hover:bg-forest-800 text-ivory-50 shadow-md"
+                leftIcon={<ArrowDownLeft className="w-5 h-5 text-sage-200" />}
+              >
+                + Add Income
+              </Button>
+
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={onAddTransaction}
+                className="border-apricot-300 text-apricot-800 hover:bg-apricot-50 bg-white"
+                leftIcon={<ArrowUpRight className="w-5 h-5 text-apricot-600" />}
+              >
+                + Add Expense
+              </Button>
+            </div>
+
+            {/* Progress Indicator callout */}
+            <div className="pt-4 border-t border-charcoal-100/70 flex items-center gap-3 text-xs font-semibold text-charcoal-500">
+              <div className="w-2.5 h-2.5 rounded-full bg-apricot-500 animate-pulse" />
+              <span>Your financial overview is waiting for your first transaction.</span>
+            </div>
+          </div>
+
+          {/* Decorative MoneyPath graphic in background */}
+          <div className="hidden lg:block absolute right-4 bottom-4 opacity-30 pointer-events-none">
+            <MoneyPath variant="compact" width={380} />
+          </div>
+        </Card>
+
+        {/* Helper Feature Cards for New Users */}
+        <div className="grid md:grid-cols-3 gap-5">
+          <Card className="p-6 bg-cream-50/80 border-charcoal-100 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-forest-100 text-forest-800 flex items-center justify-center font-bold font-display text-base">
+              1
+            </div>
+            <h3 className="font-display font-bold text-charcoal-900 text-base">Track your Cashflow</h3>
+            <p className="text-xs text-charcoal-600 leading-relaxed">
+              Log your income sources and daily spending to watch your Money Path dynamically map out.
+            </p>
+          </Card>
+
+          <Card className="p-6 bg-cream-50/80 border-charcoal-100 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-apricot-100 text-apricot-800 flex items-center justify-center font-bold font-display text-base">
+              2
+            </div>
+            <h3 className="font-display font-bold text-charcoal-900 text-base">Set Monthly Budgets</h3>
+            <p className="text-xs text-charcoal-600 leading-relaxed">
+              Create custom spending targets for categories like Food, Transport, and Entertainment.
+            </p>
+          </Card>
+
+          <Card className="p-6 bg-cream-50/80 border-charcoal-100 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 flex items-center justify-center font-bold font-display text-base">
+              3
+            </div>
+            <h3 className="font-display font-bold text-charcoal-900 text-base">Unlock AI Insights</h3>
+            <p className="text-xs text-charcoal-600 leading-relaxed">
+              As you add transactions, FinTrack AI generates personalized observations and savings tips.
+            </p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}

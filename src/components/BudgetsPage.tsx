@@ -160,11 +160,11 @@ export function BudgetsPage({ initialMonth }: BudgetsPageProps) {
         <Card className="p-10 sm:p-16 text-center">
           <div className="flex flex-col items-center justify-center space-y-3">
             <MoneyPath variant="minimal" width={220} animate={false} />
-            <h3 className="font-display font-bold text-charcoal-900 text-xl">No budgets created for {monthLabel(month)}</h3>
+            <h3 className="font-display font-bold text-charcoal-900 text-xl">No budgets set</h3>
             <p className="text-sm text-charcoal-600 max-w-sm">
-              Set spending limits for categories like Food & Dining or Shopping to maintain complete clarity.
+              Create your first budget to keep your spending on track.
             </p>
-            <Button className="mt-2" onClick={openAdd} leftIcon={<Plus className="w-4 h-4" />}>Add First Budget</Button>
+            <Button className="mt-2" onClick={openAdd} leftIcon={<Plus className="w-4 h-4" />}>Create Budget</Button>
           </div>
         </Card>
       ) : (

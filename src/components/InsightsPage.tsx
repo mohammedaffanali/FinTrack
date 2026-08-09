@@ -38,9 +38,11 @@ export function InsightsPage() {
         <Card className="p-10 sm:p-16 text-center">
           <div className="flex flex-col items-center justify-center space-y-3">
             <MoneyPath variant="minimal" width={220} animate={false} />
-            <h3 className="font-display font-bold text-charcoal-900 text-xl">No insights generated yet</h3>
-            <p className="text-sm text-charcoal-600 max-w-sm">
-              Log a few transactions across this month to see automated pattern analysis and savings callouts.
+            <h3 className="font-display font-bold text-charcoal-900 text-xl max-w-md leading-snug">
+              I need a little more information before I can analyze your spending.
+            </h3>
+            <p className="text-sm text-charcoal-600 max-w-md">
+              Add a few transactions and I'll help you understand your financial habits.
             </p>
           </div>
         </Card>

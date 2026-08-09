@@ -30,34 +30,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      if (data.session?.user) {
-        const u = data.session.user;
-        if (u.email && !isGmail(u.email)) {
-          supabase.auth.signOut();
-          setUser(null);
-        } else {
-          setUser(toSessionUser(u));
+
+    let isSubscribed = true;
+
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!isSubscribed) return;
+
+        if (data.session?.user) {
+          const u = data.session.user;
+          if (u.email && !isGmail(u.email)) {
+            await supabase.auth.signOut();
+            if (isSubscribed) setUser(null);
+          } else {
+            if (isSubscribed) setUser(toSessionUser(u));
+          }
+        }
+      } catch (err) {
+        console.error('Error getting auth session:', err);
+      } finally {
+        const hasOAuthParams =
+          window.location.hash.includes('access_token=') ||
+          window.location.search.includes('code=');
+
+        if (isSubscribed && !hasOAuthParams) {
+          setLoading(false);
         }
       }
-      setLoading(false);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    };
+
+    initAuth();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isSubscribed) return;
+
       if (session?.user) {
-        if (session.user.email && !isGmail(session.user.email)) {
-          supabase.auth.signOut();
-          setUser(null);
+        const u = session.user;
+        if (u.email && !isGmail(u.email)) {
+          await supabase.auth.signOut();
+          if (isSubscribed) setUser(null);
         } else {
-          setUser(toSessionUser(session.user));
+          if (isSubscribed) setUser(toSessionUser(u));
+
+          if (window.location.hash.includes('access_token=') || window.location.search.includes('code=')) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
         }
       } else {
-        setUser(null);
+        if (isSubscribed) setUser(null);
+      }
+
+      if (isSubscribed) {
+        setLoading(false);
       }
     });
+
     return () => {
-      mounted = false;
+      isSubscribed = false;
       sub.subscription.unsubscribe();
     };
   }, []);
@@ -96,9 +126,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured) {
       return { error: 'Backend is not configured properly.' };
     }
+    const redirectTo = window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo,
+      },
     });
     if (error) return { error: error.message };
     return { error: null };
@@ -121,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 function toSessionUser(u: User, nameOverride?: string): SessionUser {
   const name =
     nameOverride ??
+    (u.user_metadata?.full_name as string | undefined) ??
     (u.user_metadata?.name as string | undefined) ??
     (u.email ? u.email.split('@')[0] : 'User');
   return { id: u.id, name, email: u.email ?? '' };
@@ -131,4 +165,5 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+
 

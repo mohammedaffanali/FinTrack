@@ -171,9 +171,9 @@ export function SubscriptionsPage() {
         <Card className="p-10 sm:p-16 text-center">
           <div className="flex flex-col items-center justify-center space-y-3">
             <MoneyPath variant="minimal" width={220} animate={false} />
-            <h3 className="font-display font-bold text-charcoal-900 text-xl">No subscriptions tracked yet</h3>
+            <h3 className="font-display font-bold text-charcoal-900 text-xl">No subscriptions added yet.</h3>
             <p className="text-sm text-charcoal-600 max-w-sm">
-              Add recurring services like Netflix, Spotify, or cloud storage to prevent quiet money drains.
+              Add recurring subscriptions to keep track of monthly renewals.
             </p>
             <Button className="mt-2" onClick={openAdd} leftIcon={<Plus className="w-4 h-4" />}>Add Subscription</Button>
           </div>

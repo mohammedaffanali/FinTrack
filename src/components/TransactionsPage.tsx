@@ -191,11 +191,11 @@ export function TransactionsPage({ onAdd, onEdit, onImportCSV, filterCategory, c
           <div className="flex flex-col items-center justify-center space-y-3">
             <MoneyPath variant="minimal" width={220} animate={false} />
             <h3 className="font-display font-bold text-charcoal-900 text-lg">
-              {transactions.length === 0 ? 'No transactions logged yet' : 'No matching transactions'}
+              {transactions.length === 0 ? 'No transactions yet.' : 'No matching transactions'}
             </h3>
             <p className="text-sm text-charcoal-600 max-w-sm">
               {transactions.length === 0
-                ? 'Add your first transaction or import a CSV statement to begin tracking your Money Path.'
+                ? 'Add your first expense or income to start tracking.'
                 : 'Try adjusting your search criteria or clearing active filters.'}
             </p>
             {transactions.length === 0 ? (

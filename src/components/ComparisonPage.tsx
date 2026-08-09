@@ -36,6 +36,27 @@ export function ComparisonPage() {
 
   const expChange = pctChange(cur.expenses, prev.expenses);
 
+  if (transactions.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-forest-700">Variance Analysis</span>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-charcoal-900 mt-0.5">Monthly Comparison</h1>
+          <p className="text-sm text-charcoal-600 mt-1">Compare spending trends and flow changes month-over-month.</p>
+        </div>
+
+        <Card className="p-10 sm:p-16 text-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <h3 className="font-display font-bold text-charcoal-900 text-xl">No financial data</h3>
+            <p className="text-sm text-charcoal-600 max-w-sm">
+              Add some transactions to unlock your spending insights.
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -43,8 +64,7 @@ export function ComparisonPage() {
         <h1 className="font-display text-3xl font-bold tracking-tight text-charcoal-900 mt-0.5">Monthly Comparison</h1>
         <p className="text-sm text-charcoal-600 mt-1">Compare spending trends and flow changes month-over-month.</p>
       </div>
-
-      {/* Month selectors */}
+          {/* Month selectors */}
       <Card className="p-5">
         <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
           <div className="flex-1">
