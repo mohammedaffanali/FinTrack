@@ -154,7 +154,7 @@ export function TransactionModal({ open, onClose, onSave, editing }: Transaction
         <div className="grid grid-cols-2 gap-4">
           <Field label="Amount" error={errors.amount} required>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 font-semibold text-sm">$</span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 font-semibold text-sm">₹</span>
               <TextInput
                 type="number"
                 inputMode="decimal"
