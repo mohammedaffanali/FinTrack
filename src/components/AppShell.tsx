@@ -88,17 +88,31 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileNavOpen(true)}
-              className="p-2 text-charcoal-700 hover:bg-cream-200 rounded-lg transition-colors"
+              className="flex items-center gap-2 h-9 pl-1.5 pr-2.5 rounded-xl hover:bg-cream-200/80 transition-colors"
             >
-              <Menu className="w-5 h-5" />
+              <div className="w-7 h-7 rounded-full bg-forest-100 flex items-center justify-center text-forest-800 text-xs font-bold border border-forest-200">
+                {initials}
+              </div>
+              <Menu className="w-4 h-4 text-charcoal-600" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile nav drawer */}
-      <Modal open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title="Navigation" size="sm">
-        <nav className="space-y-1.5">
+      <Modal open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title="Menu" size="sm">
+        {/* Profile section */}
+        <div className="flex items-center gap-3 px-1 pb-4 mb-2 border-b border-charcoal-100">
+          <div className="w-10 h-10 rounded-full bg-forest-100 flex items-center justify-center text-forest-800 text-sm font-bold border border-forest-200 shrink-0">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-charcoal-900 truncate">{user?.name}</p>
+            <p className="text-xs text-charcoal-500 truncate">{user?.email}</p>
+          </div>
+        </div>
+
+        <nav className="space-y-1">
           {NAV.map((item) => {
             const active = page === item.id;
             return (
@@ -108,7 +122,7 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
                   onNavigate(item.id);
                   setMobileNavOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 h-12 rounded-xl text-sm font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3.5 h-11 rounded-xl text-sm font-medium transition-colors ${
                   active
                     ? 'bg-forest-700 text-ivory-50 font-semibold'
                     : 'text-charcoal-700 hover:bg-cream-200'
@@ -119,7 +133,8 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
               </button>
             );
           })}
-          <div className="pt-4 mt-4 border-t border-charcoal-100">
+
+          <div className="pt-3 mt-3 border-t border-charcoal-100 space-y-1.5">
             <Button
               className="w-full"
               onClick={() => {
@@ -130,6 +145,17 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
             >
               Add Transaction
             </Button>
+
+            <button
+              onClick={() => {
+                setMobileNavOpen(false);
+                signOut();
+              }}
+              className="w-full flex items-center gap-3 px-3.5 h-11 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
           </div>
         </nav>
       </Modal>
