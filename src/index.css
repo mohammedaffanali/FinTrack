@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    background-color: #fdfcf8;
+    color: #1c1a15;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #fdfcf8;
+    color: #1c1a15;
+    min-height: 100vh;
+  }
+  ::selection {
+    background-color: #dcebe0;
+    color: #1c3f2b;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .money-path-stroke {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: pathDraw 1.5s ease-out forwards;
+  }
+  .money-path-stroke-slow {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: pathDraw 2.5s ease-out forwards;
+  }
+  .glass-cream {
+    background: rgba(253, 251, 246, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d0dacd;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8a9f85;
+}
+
+/* Smooth focus rings */
+*:focus-visible {
+  outline: 2px solid #2d6442;
+  outline-offset: 2px;
+}
+
