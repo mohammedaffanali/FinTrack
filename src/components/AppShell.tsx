@@ -4,6 +4,7 @@ import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { Icon } from './ui/Icon';
 import { Logo } from './ui/Logo';
+import { FinancialBackground } from './ui/FinancialBackground';
 import {
   LogOut,
   Plus,
@@ -41,7 +42,8 @@ export function AppShell({ page, onNavigate, onAddTransaction, children }: AppSh
     : 'U';
 
   return (
-    <div className="min-h-screen bg-ivory-50 text-charcoal-900 flex">
+    <div className="min-h-screen bg-ivory-50 text-charcoal-900 flex relative overflow-hidden">
+      <FinancialBackground variant="dashboard" />
       {/* Sidebar - desktop */}
       <aside className="hidden lg:flex w-64 flex-col bg-cream-100/90 border-r border-charcoal-100 fixed h-screen z-30">
         <div className="h-20 flex items-center px-6 border-b border-charcoal-100/70">

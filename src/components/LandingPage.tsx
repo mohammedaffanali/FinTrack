@@ -3,6 +3,7 @@ import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Logo } from './ui/Logo';
 import { MoneyPath } from './ui/MoneyPath';
+import { FinancialBackground } from './ui/FinancialBackground';
 import {
   TrendingUp,
   Repeat,
@@ -38,7 +39,8 @@ export function LandingPage({ onGetStarted, onLogin }: LandingPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-ivory-50 text-charcoal-900 selection:bg-forest-100 selection:text-forest-800">
+    <div className="min-h-screen bg-ivory-50 text-charcoal-900 selection:bg-forest-100 selection:text-forest-800 relative overflow-hidden">
+      <FinancialBackground variant="landing" />
       {/* Navbar */}
       <header className="sticky top-0 z-40 bg-ivory-50/90 backdrop-blur-md border-b border-charcoal-100/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

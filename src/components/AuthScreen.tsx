@@ -3,6 +3,7 @@ import { Button } from './ui/Button';
 import { Field, TextInput } from './ui/Field';
 import { Logo } from './ui/Logo';
 import { MoneyPath } from './ui/MoneyPath';
+import { FinancialBackground } from './ui/FinancialBackground';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { TrendingUp, ShieldCheck, Sparkles } from 'lucide-react';
@@ -51,7 +52,8 @@ export function AuthScreen({ mode, onToggle, onSuccess }: AuthScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-ivory-50 flex font-sans">
+    <div className="min-h-screen bg-ivory-50 flex font-sans relative overflow-hidden">
+      <FinancialBackground variant="landing" />
       {/* Left brand panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-forest-900 text-ivory-50 p-12 flex-col justify-between relative overflow-hidden">
         {/* Subtle background glow */}
